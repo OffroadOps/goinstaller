@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SystemReinstaller v2.0 - 系统重装助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+            background: #f5f5f5; /* 改为简洁的灰色背景 */
+            color: #333;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            /* 移除花哨的text-shadow */
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            color: #666;
+        }
+        
+        /* 简化或移除features部分 */
+        .features {
+            display: none; /* 启动时不显示功能介绍 */
+        }
+        
+        .loading {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50%;
+            border-top-color: #409eff;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .status {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="loading-container">
+        <div class="logo">🔧 SystemReinstaller</div>
+        <div class="subtitle">乾坤大挪移 v2.0</div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🐧 Linux 系统</h3>
+                <p>支持 Ubuntu、Debian、CentOS、Rocky Linux 等主流发行版</p>
+            </div>
+            <div class="feature">
+                <h3>🪟 Windows 系统</h3>
+                <p>支持 Windows 10/11 以及 Windows Server 系列</p>
+            </div>
+            <div class="feature">
+                <h3>💿 DD 镜像</h3>
+                <p>支持自定义 DD 镜像安装，兼容 VHD、RAW 等格式</p>
+            </div>
+            <div class="feature">
+                <h3>🔍 系统检测</h3>
+                <p>自动检测硬件配置和兼容性</p>
+            </div>
+        </div>
+        
+        <div class="loading">
+            <div class="spinner"></div>
+            正在启动应用程序...
+        </div>
+        
+        <div class="status" id="status">
+            等待前端加载完成...
+        </div>
+    </div>
+    
+    <!-- Vue应用容器，初始隐藏 -->
+    <div id="app" style="display: none;"></div>
+    
+    <script>
+        // 移除无限循环的状态更新
+        // 检查是否在 Wails 环境中
+        if (typeof window.go !== 'undefined') {
+            document.getElementById('status').textContent = 'Wails 环境已就绪！'
+        }
+    </script>
+</body>
+</html>
