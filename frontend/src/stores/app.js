@@ -89,10 +89,13 @@ export const useAppStore = defineStore('app', () => {
     if (logs.value.length > 1000) {
       logs.value.splice(0, 100)
     }
+    
+    console.log(`[${log.level}] ${message}`)
   }
   
   const clearLogs = () => {
     logs.value = []
+    console.clear()
   }
   
   const exportLogs = () => {
@@ -113,13 +116,24 @@ export const useAppStore = defineStore('app', () => {
   
   // 初始化
   const init = () => {
+    console.log('App store initializing...')
+    
     // 从本地存储恢复主题
     const savedTheme = localStorage.getItem('app-theme')
     if (savedTheme) {
       theme.value = savedTheme
     }
     
+    // 模拟获取系统信息
+    updateSystemInfo({
+      computerName: 'DESKTOP-DEV',
+      timestamp: new Date().toLocaleString(),
+      osVersion: 'Windows 10',
+      arch: 'x64'
+    })
+    
     addLog('info', '应用初始化完成')
+    console.log('App store initialized')
   }
   
   return {

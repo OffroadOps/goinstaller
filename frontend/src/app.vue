@@ -17,7 +17,7 @@
     <div class="main-content">
       <!-- 选项卡导航 -->
       <div class="tab-nav">
-        <el-tabs v-model="activeTab" type="card" class="main-tabs">
+        <el-tabs v-model="activeTab" type="card" class="main-tabs" @tab-change="onTabChange">
           <el-tab-pane label="VHD重装" name="vhd">
             <template #label>
               <span class="tab-label">
@@ -68,7 +68,11 @@
           <div class="main-panel">
             <router-view v-slot="{ Component }">
               <transition name="fade" mode="out-in">
-                <component :is="Component" />
+                <component :is="Component" v-if="Component" />
+                <div v-else class="loading-placeholder">
+                  <el-icon class="is-loading"><Loading /></el-icon>
+                  <span>加载中...</span>
+                </div>
               </transition>
             </router-view>
           </div>
@@ -144,12 +148,14 @@ watch(() => route.name, (newRoute) => {
   if (newRoute) {
     activeTab.value = newRoute
   }
-})
+}, { immediate: true })
 
-// 监听选项卡变化
-watch(activeTab, (newTab) => {
-  router.push({ name: newTab })
-})
+// 选项卡变化处理
+const onTabChange = (tabName) => {
+  router.push({ name: tabName }).catch(() => {
+    // 忽略导航重复错误
+  })
+}
 
 // 主题切换
 const toggleTheme = () => {
@@ -161,30 +167,22 @@ const toggleTheme = () => {
 // 日志操作
 const clearLog = () => {
   logs.value = []
+  appStore.clearLogs()
 }
 
 const exportLog = () => {
-  const logText = logs.value.map(log => 
-    `[${log.time}] [${log.level}] ${log.message}`
-  ).join('\n')
-  
-  const blob = new Blob([logText], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `system-log-${new Date().toISOString().slice(0, 10)}.txt`
-  a.click()
-  URL.revokeObjectURL(url)
+  appStore.exportLogs()
 }
 
 // 添加日志
 const addLog = (level, message) => {
-  logs.value.push({
+  const log = {
     time: new Date().toLocaleTimeString(),
-    level,
+    level: level.toUpperCase(),
     message,
     type: level.toLowerCase()
-  })
+  }
+  logs.value.push(log)
   
   // 自动滚动到底部
   nextTick(() => {
@@ -197,6 +195,8 @@ const addLog = (level, message) => {
 
 // 组件挂载
 onMounted(() => {
+  console.log('App mounted')
+  
   // 初始化主题
   const savedTheme = localStorage.getItem('theme')
   if (savedTheme === 'dark') {
@@ -205,15 +205,18 @@ onMounted(() => {
   }
   
   // 初始化路由
-  if (route.name) {
-    activeTab.value = route.name
+  if (!route.name) {
+    router.push({ name: 'vhd' }).catch(() => {})
   } else {
-    router.push({ name: 'vhd' })
+    activeTab.value = route.name
   }
   
+  // 初始化store
+  appStore.init()
+  
   // 添加欢迎日志
-  addLog('INFO', '系统重装助手已启动')
-  addLog('INFO', '欢迎使用 SystemReinstaller v2.0')
+  addLog('info', '系统重装助手已启动')
+  addLog('info', '欢迎使用 SystemReinstaller v2.0')
 })
 
 // 暴露方法给全局使用
@@ -230,34 +233,6 @@ window.hideProgress = () => {
 </script>
 
 <style scoped>
-.app-container {
-  background: #fafafa; /* 更接近原生应用的背景 */
-  border: 1px solid #ddd; /* 添加边框 */
-}
-
-.title-bar {
-  background: linear-gradient(to bottom, #f8f8f8, #e8e8e8);
-  border-bottom: 1px solid #ccc;
-  /* 更像Windows原生标题栏 */
-}
-
-.main-tabs {
-  /* 使用更传统的标签页样式 */
-  --el-tabs-header-height: 40px;
-}
-
-.main-tabs .el-tabs__item {
-  background: #f0f0f0;
-  border: 1px solid #ccc;
-  border-bottom: none;
-  margin-right: 2px;
-}
-
-.main-tabs .el-tabs__item.is-active {
-  background: white;
-  border-bottom: 1px solid white;
-}
-</style>
 .app-container {
   height: 100vh;
   display: flex;
@@ -334,6 +309,15 @@ window.hideProgress = () => {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
+}
+
+.loading-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--el-text-color-secondary);
 }
 
 .log-panel {

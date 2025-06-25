@@ -31,19 +31,24 @@ app.use(ElementPlus, {
   locale: zhCn,
 })
 
-// 挂载应用
-app.mount('#app')
-
-// 隐藏加载动画 - 修复元素选择器
-setTimeout(() => {
-  // 移除整个初始加载容器
-  const container = document.querySelector('.container')
-  if (container) {
-    container.style.opacity = '0'
-    setTimeout(() => {
-      container.style.display = 'none'
-      // 显示Vue应用
-      document.getElementById('app').style.display = 'block'
-    }, 300)
-  }
-}, 300)
+// 等待DOM加载完成后再挂载
+document.addEventListener('DOMContentLoaded', () => {
+  // 挂载应用
+  app.mount('#app')
+  
+  // 隐藏加载动画
+  setTimeout(() => {
+    const loadingContainer = document.getElementById('loading-container')
+    if (loadingContainer) {
+      loadingContainer.style.opacity = '0'
+      setTimeout(() => {
+        loadingContainer.style.display = 'none'
+        // 显示Vue应用
+        const appElement = document.getElementById('app')
+        if (appElement) {
+          appElement.style.display = 'block'
+        }
+      }, 300)
+    }
+  }, 1000) // 增加延迟确保应用完全加载
+})
